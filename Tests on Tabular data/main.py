@@ -97,13 +97,13 @@ if __name__ == '__main__':
     parser.add_argument('--tau_eval_c', default=0., type=float,
                         help='Temperature of the Gumbel Softmax for the contextual slot selection during evaluation')
     parser.add_argument('--tau_strat_update_train_r', default=None, type=parse_str_with_None,
-                        help='Temperature evolution strategy for the rule selection during training (replace tau_train_r)') # exp_dec(50., 0.1, 0.05) # lin_dec(50., .1, 1.)
+                        help='Temperature evolution strategy for the rule selection during training (replace tau_train_r if specified)') # exp_dec(50., 0.1, 0.05) # lin_dec(50., .1, 1.)
     parser.add_argument('--tau_strat_update_eval_r', default=None, type=parse_str_with_None,
-                        help='Temperature evolution strategy for the rule selection during evaluation (replace tau_eval_r)')
+                        help='Temperature evolution strategy for the rule selection during evaluation (replace tau_eval_r if specified)')
     parser.add_argument('--tau_strat_update_train_c', default=None, type=parse_str_with_None,
-                        help='Temperature evolution strategy for the contextual slot selection during training (replace tau_train_c)')
+                        help='Temperature evolution strategy for the contextual slot selection during training (replace tau_train_c if specified)')
     parser.add_argument('--tau_strat_update_eval_c', default=None, type=parse_str_with_None,
-                        help='Temperature evolution strategy for the contextual slot selection during evaluation (replace tau_eval_c)')
+                        help='Temperature evolution strategy for the contextual slot selection during evaluation (replace tau_eval_c if specified)')
     
     parser.add_argument('--query_r', default='Sp', type=str,
                         help='Definition of the query-ies attention for the rule selection')

@@ -97,13 +97,13 @@ if __name__ == '__main__':
     parser.add_argument('--tau_eval_c', default=0., type=float,
                         help='Temperature of the Gumbel Softmax for the contextual slot selection during evaluation')
     parser.add_argument('--tau_strat_update_train_r', default=None, type=parse_str_with_None,
-                        help='Temperature evolution strategy for the rule selection during training (replace tau_train_r)') # exp_dec(50., 0.1, 0.05) # lin_dec(50., .1, 1.)
+                        help='Temperature evolution strategy for the rule selection during training (replace tau_train_r if specified)') # exp_dec(50., 0.1, 0.05) # lin_dec(50., .1, 1.)
     parser.add_argument('--tau_strat_update_eval_r', default=None, type=parse_str_with_None,
-                        help='Temperature evolution strategy for the rule selection during evaluation (replace tau_eval_r)')
+                        help='Temperature evolution strategy for the rule selection during evaluation (replace tau_eval_r if specified)')
     parser.add_argument('--tau_strat_update_train_c', default=None, type=parse_str_with_None,
-                        help='Temperature evolution strategy for the contextual slot selection during training (replace tau_train_c)')
+                        help='Temperature evolution strategy for the contextual slot selection during training (replace tau_train_c if specified)')
     parser.add_argument('--tau_strat_update_eval_c', default=None, type=parse_str_with_None,
-                        help='Temperature evolution strategy for the contextual slot selection during evaluation (replace tau_eval_c)')
+                        help='Temperature evolution strategy for the contextual slot selection during evaluation (replace tau_eval_c if specified)')
     
     parser.add_argument('--query_r', default='Sp', type=str,
                         help='Definition of the query-ies attention for the rule selection')
@@ -115,21 +115,21 @@ if __name__ == '__main__':
                         help='Definition of the MLP inputs (for the rules)')
     
     parser.add_argument('--hard_gs_train_r', default=True, type=parse_boolean,
-                        help='')
+                        help='Whether to use a hard Gumbel Softmax for the rule selection during training')
     parser.add_argument('--hard_gs_eval_r', default=True, type=parse_boolean,
-                        help='')
+                        help='Whether to use a hard Gumbel Softmax for the rule selection during evaluation')
     parser.add_argument('--hard_gs_train_c', default=True, type=parse_boolean,
-                        help='')
+                        help='Whether to use a hard Gumbel Softmax for the contextual slot selection during training')
     parser.add_argument('--hard_gs_eval_c', default=True, type=parse_boolean,
-                        help='')
+                        help='Whether to use a hard Gumbel Softmax for the contextual slot selection during evaluation')
     parser.add_argument('--tpr_order', default=2, type=int,
-                        help='TPR order (value in [None, 0, 2, 3])')
+                        help='Using TPR order (value in [None, 0, 2, 3])')
     parser.add_argument('--use_mlp_rules', default=True, type=parse_boolean,
-                        help='')
+                        help='Whether to use a MLP for the rules')
     parser.add_argument('--scores_constraint_pos_visited', default=False, type=parse_boolean,
-                        help='')
+                        help='Whether to use a constraint over the usage of positional encoding of contextual slots to don\'t the same positional encoding in the next iterations')
     parser.add_argument('--use_pos_onehot', default=False, type=parse_boolean,
-                        help='')
+                        help='Whehter to use onehot encoding for the positional encoding of contextual slots (else use an learned embedding)')
     parser.add_argument('--simplified', default=False, type=parse_boolean,
                         help='Using the simplified architecture')
     parser.add_argument('--reversed_attn', default=False, type=parse_boolean,
@@ -147,46 +147,46 @@ if __name__ == '__main__':
     parser.add_argument('--seed', default=0, type=int,
                         help='Seed')
     parser.add_argument('--use_entropy', default=False, type=parse_boolean,
-                        help='')
+                        help='Whether to use the entropy in the loss')
     parser.add_argument('--replace_mode', default=False, type=parse_boolean,
-                        help='')
+                        help='Whether to use the replacing mode (using adding mode otherwise)')
     parser.add_argument('--force_gpu', default=False, type=parse_boolean,
-                        help='')
+                        help='Whether to force the usage of GPU')
     
     parser.add_argument('--train_size', default=10_000, type=int,
-                        help='')
+                        help='Size of the training dataset')
     parser.add_argument('--test_size', default=5_000, type=int,
-                        help='')
+                        help='Size of the test dataset')
     parser.add_argument('--k_fold', default=1, type=int,
-                        help='')
+                        help='Number of fold in the training dataset')
     parser.add_argument('--do_test', default=True, type=parse_boolean,
-                        help='')
+                        help='Whether to do a test at the end of the training phase')
     parser.add_argument('--data_path', default='./data/', type=str,
-                        help='')
+                        help='Data path (relative or absolute path)')
     parser.add_argument('--data_shuffle', default=True, type=parse_boolean,
-                        help='')
+                        help='Whether to shuffle the data')
     parser.add_argument('--n_classes', default=10, type=int,
-                        help='')
+                        help='The number of classes in the tasks')
     
     parser.add_argument('--save', default=True, type=parse_boolean,
-                        help='')
+                        help='Whether to save the statistics of the training/evaluation and the model properties')
     parser.add_argument('--save_path', default='./', type=str,
-                        help='')
+                        help='The path of the statistics to save')
     parser.add_argument('--save_name', default='TASK', type=str,
-                        help='')
+                        help='The name of the file to save')
     parser.add_argument('--save_model', default=False, type=parse_boolean,
-                        help='')
+                        help='Whether to save the model with the statistics')
 
     parser.add_argument('--encoder_callback_name', default=None, type=parse_str_with_None,
-                        help='')
+                        help='The name of the class of the encoder callback in "tables_utils" (None if no encoder)')
     parser.add_argument('--encoder_callback_args', default=None, type=parse_str_with_None,
-                        help='')
+                        help='The arguments to give in the constructor of the encoder callback class')
     parser.add_argument('--autoencoder_module_name', default='CNN_Encoder_Decoder_MNIST', type=parse_str_with_None,
-                        help='')
+                        help='The name of the file where there are the encoder and decoder definition (functions named: "get_encoder" and "get_decoder")')
     parser.add_argument('--dataloader_module_name', default='MNIST_Slot_Dataset', type=str,
-                        help='')
+                        help='The name of the file to load the datasets (should contain a function called "get_dataloaders")')
     parser.add_argument('--dataloader_sup_args', default=None, type=parse_str_with_None,
-                        help='')
+                        help='The arguments to give at the function "get_dataloaders" from the module "dataloader_module_name"')
 
     args = parser.parse_args()
     
