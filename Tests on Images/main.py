@@ -225,7 +225,11 @@ if __name__ == '__main__':
         train_eval_loaders, test_loader = dataloaders_callback(data_path=args.data_path, batch_size=args.bs, max_train_size=args.train_size, max_test_size=args.test_size, shuffle=args.data_shuffle, k_fold=args.k_fold, *dataloaders_sup_args)
     
     print_k_fold = (len(train_eval_loaders) > 1)
-    nb_chans = train_eval_loaders[0][0].dataset.dataset.get_nb_chans()
+    if (type(train_eval_loaders[0][0].dataset) == torch.utils.data.Subset):
+        nb_chans = train_eval_loaders[0][0].dataset.dataset.get_nb_chans()
+    else:
+        nb_chans = train_eval_loaders[0][0].dataset.get_nb_chans()
+    
     train_losses, eval_losses, train_accuracy, eval_accuracy, train_activations, eval_activations = [], [], [], [], [], []
     best_acc, best_params = 0, None
     for k, (train_loader, eval_loader) in enumerate(train_eval_loaders):
@@ -256,7 +260,7 @@ if __name__ == '__main__':
                                                   tau_strat_update_train_r, tau_strat_update_eval_r, tau_strat_update_train_c, tau_strat_update_eval_c,
                                                   args.use_autoencoder, encoder_callback=encoder_callback)
             
-            if max(eval_acc) > best_acc:
+            if (args.k_fold > 0) and (max(eval_acc) > best_acc):
                 best_acc = max(eval_acc)
                 best_params = model.state_dict()
                 train_activations[:] = train_act
@@ -267,7 +271,7 @@ if __name__ == '__main__':
             eval_accuracy.append(eval_acc)
         print()
     
-    if args.do_test or args.save_model:
+    if (args.k_fold > 0) and (args.do_test or args.save_model):
         model.load_state_dict(best_params) # Get the best model from best params
     if args.do_test:
         test_loss, test_acc = test(model, criterion, test_loader, device)
