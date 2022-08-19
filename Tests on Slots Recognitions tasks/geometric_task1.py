@@ -1,0 +1,38 @@
+import numpy as np
+from geometric_dataset import generate_img, generate_circle, generate_triangle, generate_diamond, generate_square
+
+def get_data():
+     return {
+        0: lambda: np.array([generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(None)]),
+        1: lambda: np.array([generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(None)]),
+        2: lambda: np.array([generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(None)]),
+        3: lambda: np.array([generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(None)]),
+        4: lambda: np.array([generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(None)]),
+        5: lambda: np.array([generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(None)]),
+        6: lambda: np.array([generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_triangle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(None)]),
+        7: lambda: np.array([generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(generate_circle, range_center=(5, 5), range_radius=(4, 4), color='white', fill='white'),
+                            generate_img(None)]),
+    }

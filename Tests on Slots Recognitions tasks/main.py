@@ -89,7 +89,7 @@ if __name__ == '__main__':
     parser.add_argument('--scores_constraint_pos_visited', default=False, type=parse_boolean,
                         help='Whether to use a constraint over the usage of positional encoding of contextual slots to don\'t the same positional encoding in the next iterations')
     parser.add_argument('--use_pos_onehot', default=False, type=parse_boolean,
-                        help='Whehter to use onehot encoding for the positional encoding of contextual slots (else use an learned embedding)')
+                        help='Whether to use onehot encoding for the positional encoding of contextual slots (else use an learned embedding)')
     parser.add_argument('--simplified', default=False, type=parse_boolean,
                         help='Using the simplified architecture')
     parser.add_argument('--reversed_attn', default=False, type=parse_boolean,
@@ -115,18 +115,14 @@ if __name__ == '__main__':
     
     parser.add_argument('--train_size', default=10_000, type=int,
                         help='Size of the training dataset')
-    parser.add_argument('--test_size', default=5_000, type=int, # test_eval_size//2 = test_size = eval_size
+    parser.add_argument('--test_size', default=5_000, type=int,
                         help='Size of the test dataset')
     parser.add_argument('--k_fold', default=1, type=int,
                         help='Number of fold in the training dataset')
     parser.add_argument('--do_test', default=True, type=parse_boolean,
                         help='Whether to do a test at the end of the training phase')
-    parser.add_argument('--data_path', default='./data/', type=str,
-                        help='Data path (relative or absolute path)')
     parser.add_argument('--data_shuffle', default=True, type=parse_boolean,
                         help='Whether to shuffle the data')
-    parser.add_argument('--n_classes', default=10, type=int,
-                        help='The number of classes in the tasks')
     
     parser.add_argument('--save', default=True, type=parse_boolean,
                         help='Whether to save the statistics of the training/evaluation and the model properties')
@@ -139,31 +135,34 @@ if __name__ == '__main__':
 
     parser.add_argument('--encoder_callback_name', default=None, type=parse_str_with_None,
                         help='The name of the class of the encoder callback in "tables_utils" (None if no encoder)')
-    parser.add_argument('--encoder_callback_args', default=None, type=parse_str_with_None,
-                        help='The arguments to give in the constructor of the encoder callback class')
+    # parser.add_argument('--encoder_callback_args', default=None, type=parse_str_with_None,
+    #                     help='The arguments to give in the constructor of the encoder callback class')
     parser.add_argument('--autoencoder_module_name', default='CNN_Encoder_Decoder_MNIST', type=parse_str_with_None,
                         help='The name of the file where there are the encoder and decoder definition (functions named: "get_encoder" and "get_decoder")')
     parser.add_argument('--dataloader_module_name', default='MNIST_Slot_Dataset', type=str,
                         help='The name of the file to load the datasets (should contain a function called "get_dataloaders")')
     parser.add_argument('--dataloader_sup_args', default=None, type=parse_str_with_None,
                         help='The arguments to give at the function "get_dataloaders" from the module "dataloader_module_name"')
+    parser.add_argument('--module_data_name', type=str,
+                        help='Name of the module (filename) in which the data are defined')
 
     args = parser.parse_args()
     
     dataloaders_callback = getattr(__import__(args.dataloader_module_name), 'get_dataloaders')
     dataloaders_sup_args = {} if args.dataloader_sup_args is None else get_args(args.dataloader_sup_args, {'noise': float, 'data_path': str})
-    n_classes = args.n_classes
+    dic_classes = __import__(args.module_data_name).get_data()
+    n_classes = len(dic_classes)
 
     if args.encoder_callback_name is None:
         encoder_callback = None
     else:
-        #encoder_callback_args = {} if args.encoder_callback_args is None else get_args(args.encoder_callback_args, {'stride': int, 'size': int})
-        class_callback = getattr(__import__('tables_utils'), args.encoder_callback_name)
-        #if isinstance(encoder_callback_args, dict):
-        #    encoder_callback = class_callback(**encoder_callback_args)
-        #else:
-        #    encoder_callback = class_callback(*encoder_callback_args)
-        encoder_callback = class_callback()
+        # encoder_callback_args = {} if args.encoder_callback_args is None else get_args(args.encoder_callback_args, {'stride': int, 'size': int})
+        class_callback = getattr(__import__('slots_utils'), args.encoder_callback_name)
+        # if isinstance(encoder_callback_args, dict):
+        #     encoder_callback = class_callback(**encoder_callback_args)
+        # else:
+        #     encoder_callback = class_callback(*encoder_callback_args)
+        encoder_callback = class_callback(args.s_dim)
     
     device = torch.device('cuda') if args.force_gpu else torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     
@@ -177,15 +176,20 @@ if __name__ == '__main__':
     tau_strat_update_train_c = get_strat(args.tau_strat_update_train_c)
     tau_strat_update_eval_c = get_strat(args.tau_strat_update_eval_c)
     
-    set_seed(args.seed) # Use seed only for data generation
+    set_seed(args.seed)
 
     # Load data
     if isinstance(dataloaders_sup_args, dict):
-        train_eval_loaders, test_loader = dataloaders_callback(data_path=args.data_path, batch_size=args.bs, max_train_size=args.train_size, max_test_size=args.test_size, shuffle=args.data_shuffle, k_fold=args.k_fold, **dataloaders_sup_args)
+        train_eval_loaders, test_loader = dataloaders_callback(dic_class_img_gen=dic_classes, batch_size=args.bs, num_train_size=args.train_size, num_test_size=args.test_size, shuffle=args.data_shuffle, k_fold=args.k_fold, **dataloaders_sup_args)
     else:
-        train_eval_loaders, test_loader = dataloaders_callback(data_path=args.data_path, batch_size=args.bs, max_train_size=args.train_size, max_test_size=args.test_size, shuffle=args.data_shuffle, k_fold=args.k_fold, *dataloaders_sup_args)
+        train_eval_loaders, test_loader = dataloaders_callback(dic_class_img_gen=dic_classes, batch_size=args.bs, num_train_size=args.train_size, num_test_size=args.test_size, shuffle=args.data_shuffle, k_fold=args.k_fold, *dataloaders_sup_args)
     
     print_k_fold = (len(train_eval_loaders) > 1)
+    if (type(train_eval_loaders[0][0].dataset) == torch.utils.data.Subset):
+        nb_chans = train_eval_loaders[0][0].dataset.dataset.get_nb_chans()
+    else:
+        nb_chans = train_eval_loaders[0][0].dataset.get_nb_chans()
+    
     train_losses, eval_losses, train_accuracy, eval_accuracy, train_activations, eval_activations = [], [], [], [], [], []
     best_acc, best_params = 0, None
     for k, (train_loader, eval_loader) in enumerate(train_eval_loaders):
@@ -193,8 +197,8 @@ if __name__ == '__main__':
             print(f'=== K-fold {k+1} ===')
 
         unset_seed()
-        encoder = __import__(args.autoencoder_module_name).get_encoder(args.s_dim, args.n_slots, device)
-        decoder = __import__(args.autoencoder_module_name).get_decoder(args.s_dim, args.n_slots, device)
+        encoder = __import__(args.autoencoder_module_name).get_encoder(args.s_dim, nb_chans).to(device)
+        decoder = __import__(args.autoencoder_module_name).get_decoder(args.s_dim, nb_chans).to(device)
 
         with torch.autograd.set_detect_anomaly(True):
             model = Model(encoder=encoder, decoder=decoder, n_classes=n_classes, n_iter=args.n_iter, n_slots=args.n_slots, s_dim=args.s_dim, sp_dim=args.sp_dim,
@@ -285,9 +289,9 @@ if __name__ == '__main__':
                     'batch_size': args.bs,
                     'seed': args.seed,
                     'use_entropy': args.use_entropy,
-                    'num_classes': args.n_classes,
+                    'num_classes': n_classes,
                     'num_train_size': args.train_size,
-                    'num_test_size': args.test_size,
+                    'num_test_eval_size': args.test_size,
                     'k_fold': args.k_fold,
                     'device_type': device.type,
                 },

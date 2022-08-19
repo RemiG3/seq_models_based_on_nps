@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
+import random
 import torch
+
 
 def load_cardio_dataset(data_path, train_size=1776, test_size=350):
     df = pd.read_excel(io=data_path, sheet_name='Data', header=1)
@@ -59,25 +61,42 @@ def get_dataloaders(data_path, batch_size=64, max_train_size=1776, max_test_size
     train_eval_dataloaders = []
     train_dataset = Cardio_Dataset(train_data[0], train_data[1])
     total_size = len(train_data[0])
-    seg = int(total_size * 1/k_fold)
-    for i in range(k_fold):
-        trll = 0
-        trlr = i * seg
-        vall = trlr
-        valr = i * seg + seg
-        trrl = valr
-        trrr = total_size
-        
-        train_left_indices = list(range(trll, trlr))
-        train_right_indices = list(range(trrl, trrr))
-        train_indices = train_left_indices + train_right_indices
-        val_indices = list(range(vall, valr))
-        
+
+    if (k_fold == 0) or (k_fold is None):
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2, collate_fn=batchify)
+        train_eval_dataloaders.append( (train_dataloader, None) )
+
+    elif k_fold == 1:
+        indicies = list(range(total_size))
+        random.shuffle(indicies)
+        train_indices = indicies[:int(2./3. * total_size)]
+        val_indices = indicies[int(2./3. * total_size):]
         train_set = torch.utils.data.dataset.Subset(train_dataset, train_indices)
         val_set = torch.utils.data.dataset.Subset(train_dataset, val_indices)
         train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=shuffle, num_workers=2, collate_fn=batchify)
         val_dataloader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=shuffle, num_workers=2, collate_fn=batchify)
         train_eval_dataloaders.append( (train_dataloader, val_dataloader) )
+
+    else: # k_fold > 1
+        seg = int(total_size * 1/k_fold)
+        for i in range(k_fold):
+            trll = 0
+            trlr = i * seg
+            vall = trlr
+            valr = i * seg + seg
+            trrl = valr
+            trrr = total_size
+            
+            train_left_indices = list(range(trll, trlr))
+            train_right_indices = list(range(trrl, trrr))
+            train_indices = train_left_indices + train_right_indices
+            val_indices = list(range(vall, valr))
+            
+            train_set = torch.utils.data.dataset.Subset(train_dataset, train_indices)
+            val_set = torch.utils.data.dataset.Subset(train_dataset, val_indices)
+            train_dataloader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=shuffle, num_workers=2, collate_fn=batchify)
+            val_dataloader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=shuffle, num_workers=2, collate_fn=batchify)
+            train_eval_dataloaders.append( (train_dataloader, val_dataloader) )
 
     test_dataset = Cardio_Dataset(test_data[0], test_data[1])
     test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2, collate_fn=batchify)

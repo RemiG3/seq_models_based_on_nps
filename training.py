@@ -22,7 +22,7 @@ def loop_eval_train(train_loader, eval_loader, model, optimizer,
     train_activations = []
 
     for n in range(epochs):
-        print(f'Epoch: {n}', end='\t')
+        print(f'Epoch: {n+1}', end='\t')
         for tau_strat, tau_attr in zip(tau_strategies, tau_attributes_name):
             if tau_strat is not None:
                 tau_strat(model, tau_attr)
@@ -68,40 +68,43 @@ def loop_eval_train(train_loader, eval_loader, model, optimizer,
         print('Train loss:', train_losses[-1], '\t Train acc:', train_accuracy[-1], end='\t')
 
         # EVALUATION
-        loss = []
-        n_correct, nb = 0, 0
-        list_y, list_y_hat, list_acts = [], [], []
-        with torch.no_grad():
-            model.eval()
-            for data in eval_loader:
-                Xi = data[0].to(device)
-                yi = data[1].to(device)
-                model.reset_arrays_record()
-                yi_hat = model(Xi)
-                l = criterion(yi_hat, yi)# + torch.sum(torch.abs(model.pos_visited-torch.ones(*model.pos_visited.size()).to(device)))
-                if use_autoencoder:
-                    if encoder_callback is not None:
-                        Xi_patches = encoder_callback(Xi)
-                    else:
-                        Xi_patches = Xi.reshape((-1, n_chans, Xi.size(-2), Xi.size(-1)))
-                    yi_hat_patches = model.autoencoder(Xi_patches)
-                    l += criterion(yi_hat_patches, Xi_patches)
-                loss.append(l.detach().cpu().numpy() + (model.entropy if use_entropy else 0))
-                yi_labels = torch.argmax(yi, dim=-1)
-                yi_hat_labels = torch.argmax(yi_hat, dim=-1)
-                n_correct += (yi_labels == yi_hat_labels).float().sum().item()
-                nb += Xi.size(0)
-                list_y += yi_labels.detach().cpu().numpy().tolist()
-                list_y_hat += yi_hat_labels.detach().cpu().numpy().tolist()
-                list_acts += model.get_activations().transpose(2, 0, 1).tolist()
-            eval_activations.append({
-                'y': np.array(list_y),
-                'y_hat' : np.array(list_y_hat),
-                'activations': np.array(list_acts),
-            })
-        eval_losses.append(np.mean(loss))
-        eval_accuracy.append(n_correct/nb)
-        print('Eval loss:', eval_losses[-1], '\t Eval acc:', eval_accuracy[-1])
+        if eval_loader is not None:
+            loss = []
+            n_correct, nb = 0, 0
+            list_y, list_y_hat, list_acts = [], [], []
+            with torch.no_grad():
+                model.eval()
+                for data in eval_loader:
+                    Xi = data[0].to(device)
+                    yi = data[1].to(device)
+                    model.reset_arrays_record()
+                    yi_hat = model(Xi)
+                    l = criterion(yi_hat, yi)# + torch.sum(torch.abs(model.pos_visited-torch.ones(*model.pos_visited.size()).to(device)))
+                    if use_autoencoder:
+                        if encoder_callback is not None:
+                            Xi_patches = encoder_callback(Xi)
+                        else:
+                            Xi_patches = Xi.reshape((-1, n_chans, Xi.size(-2), Xi.size(-1)))
+                        yi_hat_patches = model.autoencoder(Xi_patches)
+                        l += criterion(yi_hat_patches, Xi_patches)
+                    loss.append(l.detach().cpu().numpy() + (model.entropy if use_entropy else 0))
+                    yi_labels = torch.argmax(yi, dim=-1)
+                    yi_hat_labels = torch.argmax(yi_hat, dim=-1)
+                    n_correct += (yi_labels == yi_hat_labels).float().sum().item()
+                    nb += Xi.size(0)
+                    list_y += yi_labels.detach().cpu().numpy().tolist()
+                    list_y_hat += yi_hat_labels.detach().cpu().numpy().tolist()
+                    list_acts += model.get_activations().transpose(2, 0, 1).tolist()
+                eval_activations.append({
+                    'y': np.array(list_y),
+                    'y_hat' : np.array(list_y_hat),
+                    'activations': np.array(list_acts),
+                })
+            eval_losses.append(np.mean(loss))
+            eval_accuracy.append(n_correct/nb)
+            print('Eval loss:', eval_losses[-1], '\t Eval acc:', eval_accuracy[-1])
+        else:
+            print()
     
     return train_losses, eval_losses, train_accuracy, eval_accuracy, train_activations, eval_activations
 

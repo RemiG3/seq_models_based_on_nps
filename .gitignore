@@ -2,9 +2,12 @@
 
 NPS_based_model (v1).py
 NPS_based_model (v2).py
-Tests Slots Recognitions Tasks/
+.vscode/
+data/MNIST/
+data/cifar-10-batches-py/
+data/cifar-10-python.tar.gz
 * - Copie.py
-
+*/__pycache__/
 
 
 # Byte-compiled / optimized / DLL files
