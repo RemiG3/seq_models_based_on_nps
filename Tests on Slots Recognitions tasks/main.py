@@ -89,7 +89,7 @@ if __name__ == '__main__':
     parser.add_argument('--scores_constraint_pos_visited', default=False, type=parse_boolean,
                         help='Whether to use a constraint over the usage of positional encoding of contextual slots to don\'t the same positional encoding in the next iterations')
     parser.add_argument('--use_pos_onehot', default=False, type=parse_boolean,
-                        help='Whehter to use onehot encoding for the positional encoding of contextual slots (else use an learned embedding)')
+                        help='Whether to use onehot encoding for the positional encoding of contextual slots (else use an learned embedding)')
     parser.add_argument('--simplified', default=False, type=parse_boolean,
                         help='Using the simplified architecture')
     parser.add_argument('--reversed_attn', default=False, type=parse_boolean,
